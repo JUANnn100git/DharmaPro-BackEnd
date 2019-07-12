@@ -13,7 +13,7 @@ exports.verificaToken = function(req, res, next) {
 
     token = token.replace('Bearer ', '');
     
-    console.log('token', token);
+    // console.log('token', token);
 
     jwt.verify(token, SEED, (err, decoded) => {
 

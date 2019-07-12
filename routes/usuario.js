@@ -22,7 +22,7 @@ app.get('/', mdAutenticacion.verificaToken, (req, res) => {
     var desde = req.query.desde || 0;
     desde = Number(desde);
 
-    Usuario.find({ }, 'nombre email img role google')
+    Usuario.find({ }, 'nombres email img role google')
         .skip(desde)
         .limit(5)
         .exec(
@@ -50,6 +50,44 @@ app.get('/', mdAutenticacion.verificaToken, (req, res) => {
 
 });
 
+
+// ==========================================
+// GET: Obtener Usuario por ID
+// ==========================================
+app.get('/:id', mdAutenticacion.verificaToken, (req, res) => {
+
+    var id = req.params.id;
+
+    Usuario.findById(id)
+        .exec((err, usuario) => {
+
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: 'Error al buscar usuario',
+                    errors: err
+                });
+            }
+
+            if (!usuario) {
+                return res.status(400).json({
+                    ok: false, 
+                    mensaje: 'El usuario con el id ' + id + 'no existe',
+                    errors: { message: 'No existe un usuario con ese ID' }
+                });
+            }
+
+            usuario.password = ':)';
+
+            res.status(200).json({
+                ok: true,
+                usuario: usuario
+            });
+
+        })
+ 
+}) 
+
 // =========================================
 // PUT: Actualizar usuario
 // =========================================
@@ -76,7 +114,7 @@ app.put('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminRol
             });     
         }
 
-        usuario.nombre = body.nombre;
+        usuario.nombres = body.nombres;
         usuario.email = body.email;
         usuario.role = body.role;
 
@@ -111,7 +149,7 @@ app.post('/', mdAutenticacion.verificaToken, (req, res) => {
     var body = req.body;
 
     var usuario = new Usuario({
-        nombre: body.nombre,
+        nombres: body.nombres,
         email: body.email,
         password: bcrypt.hashSync(body.password, 10),
         role: body.role

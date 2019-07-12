@@ -24,7 +24,7 @@ app.get('/', mdAutenticacion.verificaToken, (req, res) => {
     Medico.find({})
         .skip(desde)
         .limit(5)
-        .populate('usuario', 'nombre email')
+        .populate('usuario', 'nombres email')
         .populate('hospital')
         .exec(
             (err, medicos) => {
@@ -59,7 +59,7 @@ app.get('/:id', mdAutenticacion.verificaToken, (req, res) => {
     var id = req.params.id;
 
     Medico.findById(id)
-        .populate('usuario', 'nombre img email')
+        .populate('usuario', 'nombres img email')
         .populate('hospital')
         .exec((err, medico) => {
 
