@@ -22,7 +22,7 @@ app.get('/', mdAutenticacion.verificaToken, (req, res) => {
     var desde = req.query.desde || 0;
     desde = Number(desde);
 
-    Usuario.find({ }, 'nombres email img role google')
+    Usuario.find({ }, 'nombres email img role estado contador_login')
         .skip(desde)
         .limit(5)
         .exec(

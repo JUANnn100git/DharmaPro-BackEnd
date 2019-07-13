@@ -4,8 +4,27 @@ var uniqueValidator = require('mongoose-unique-validator')
 var Schema = mongoose.Schema;
 
 var rolesValidos = {
-    values: ['ADMIN_ROLE', 'USER_ROLE'],
+    values: [
+        'ADMIN_ROLE',
+        'USER_ROLE',
+        'Dharma_Gerencia',
+        'Dharma_Sistemas',
+        'Dharma_Administracion',
+        'Dharma_Operaciones',
+        'Dharma_Consultoria',
+        'Dharma_Desarrollo',
+        'Dharma_Capacitacion'
+    ],
     message: '{VALUE} no es un rol permitido'
+}
+
+var estadosValidos = {
+    values: [
+        'Activo',
+        'Inactivo',
+        'Bloqueado'
+    ],
+    message: '{VALUE} no es un estado permitido'
 }
 
 var usuarioSchema = new Schema({
@@ -15,7 +34,8 @@ var usuarioSchema = new Schema({
     password: { type: String, required: [true, 'La contraseña es necesaria'] },
     img: { type: String, required: false },
     role: { type: String, required: true, default: 'USER_ROLE', enum: rolesValidos },
-    google: { type: Boolean, default: false}
+    estado: { type: String, required: false, default: 'Activo', enum: estadosValidos },
+    contador_login: { type: Number, required: false, default: 0 }
 
 });
 
