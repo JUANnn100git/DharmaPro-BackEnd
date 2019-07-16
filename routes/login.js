@@ -74,7 +74,7 @@ app.post('/', (req, res) => {
 
             usuarioDB.contador_login++;
             
-            if (usuarioDB.contador_login == 3) {
+            if (usuarioDB.contador_login == 6) {
                 usuarioDB.estado = 'Bloqueado';
             }
 

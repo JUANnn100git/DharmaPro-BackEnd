@@ -142,6 +142,58 @@ app.put('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminRol
 });
 
 // =========================================
+// PUT: Actualizar password de usuario
+// =========================================
+app.put('/security/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminRole_o_MismoUsuario], (req, res) => {
+
+    var id = req.params.id;
+    var body = req.body;
+
+    Usuario.findById(id, (err, usuario) => {
+
+        if (err){
+            return res.status(500).json({
+                ok: false,
+                mensaje: 'Error al buscar usuario',
+                errors: err
+            });
+        }
+
+        if (!usuario) {
+            return res.status(404).json({
+                ok: false,
+                mensaje: 'El usuario con el id' + id + 'no existe',
+                errors: { message: 'No existe un usuario con ese Id' }
+            });     
+        }
+
+        usuario.password = bcrypt.hashSync(body.password, 10);
+
+        usuario.save( (err, usuarioGuardado) => {
+
+            if (err){
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'Error al actualizar usuario',
+                    errors: err
+                });
+            }
+
+            usuarioGuardado.password = ":)";
+
+            res.status(200).json({
+                ok: true,
+                usuarioGuardado: usuarioGuardado
+            });
+
+        });
+
+    });
+
+});
+
+
+// =========================================
 // POST: Crear un nuevo usuario
 // =========================================
 app.post('/', mdAutenticacion.verificaToken, (req, res) => {
