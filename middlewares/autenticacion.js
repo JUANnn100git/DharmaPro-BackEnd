@@ -7,6 +7,8 @@ var SEED = require('../config/config').SEED;
 // =========================================
 
 exports.verificaToken = function(req, res, next) {
+
+    console.log('Verifica Token');
     
     // var token = req.query.token;
     var token = req.headers.authorization;
@@ -20,7 +22,7 @@ exports.verificaToken = function(req, res, next) {
         if (err){
             return res.status(401).json({
                 ok: false,
-                mensaje: 'Token incorrecto',
+                mensaje: 'Token incorrecto 123',
                 errors: err
             });;
         }

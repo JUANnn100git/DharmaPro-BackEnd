@@ -4,6 +4,7 @@ var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser')
 
+
 require('./config/config');
 
 // Inicializar variables
@@ -43,6 +44,7 @@ mongoose.connect(process.env.URLDB, { useNewUrlParser: true, useCreateIndex: tru
 // app.use('/uploads', serveIndex(__dirname + '/uploads'));
 
 // Rutas
+
 app.use('/login', loginRoutes);
 app.use('/usuario', usuarioRoutes);
 app.use('/hospital', hospitalRoutes);
