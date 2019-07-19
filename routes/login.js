@@ -5,6 +5,8 @@ var jwt = require('jsonwebtoken');
 
 var SEED = require('../config/config').SEED;
 
+var sendMail =  require('../helpers/mail');
+
 // Inicializar variables
 var app = express();
 
@@ -18,60 +20,13 @@ var mdAutenticacion = require('../middlewares/autenticacion');
 // =========================================
 app.post('/recupera-password', (req, res) => {
 
-    "use strict";
-    const nodemailer = require("nodemailer");
-
-    var mensaje = '';
-    
-    // async..await is not allowed in global scope, must use a wrapper
-    async function main( newpass ){
-    
-      // Generate test SMTP service account from ethereal.email
-      // Only needed if you don't have a real mail account for testing
-      let testAccount = await nodemailer.createTestAccount();
-    
-      // create reusable transporter object using the default SMTP transport
-      let transporter = nodemailer.createTransport({
-        host: "mail.dharma-consulting.com",
-        port: 465,
-        secure: true, // true for 465, false for other ports
-        auth: {
-          user: 'jvillanueva@dharma-consulting.com', // generated ethereal user
-          pass: 'dc*2014' // generated ethereal password
-        }
-      });
-
-      var currentDate = new Date();
-      var date = currentDate.getDate();
-      var month = currentDate.getMonth(); 
-      var year = currentDate.getFullYear();
-      var hours = currentDate.getHours();
-      var minutes = currentDate.getMinutes();
-      var seconds = currentDate.getSeconds(); 
-
-      var timestamp  = (month+1) + "/" + date + "/" + year + " " + hours + ":" + minutes + ":" + seconds;
-
-      // send mail with defined transport object
-      let info = await transporter.sendMail({
-        from: '"DharmaPro 👻" <admin@dharma-consulting.com>', // sender address
-        to: "jvillanueva@dharma-consulting.com", // list of receivers
-        subject: timestamp, // Subject line
-        text: "Hello world?", // plain text body
-        html: "<b>Contraseña: </b>" + newpass // html body
-      });
-    
-      mensaje = info.messageId;
-      // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
-    
-    }
-    
-
-
-
+    // Obtiene los datos enviados por el POST request
     var body = req.body;
 
+    // Query Document -> Encuentra un Usuario con el email = body.email y lo devuelve como "usuarioDB"
     Usuario.findOne({ email: body.email }, (err, usuarioDB) => {
 
+        // Si existe un error la respueta del Query
         if (err){
             return res.status(500).json({
                 ok: false,
@@ -80,6 +35,7 @@ app.post('/recupera-password', (req, res) => {
             });
         }
 
+        // Si no existe el usuario buscado
         if (!usuarioDB) {
             return res.status(400).json({
                 ok: false,
@@ -88,6 +44,7 @@ app.post('/recupera-password', (req, res) => {
             });
         }
 
+        // Si el usuario se encuentra inactivo
         if ( usuarioDB.estado === 'Inactivo' ){
             return res.status(400).json({
                 ok: false,
@@ -96,12 +53,29 @@ app.post('/recupera-password', (req, res) => {
             });
         }
 
+
+        // Crear Token de "passwordRestore" utilizando los datos de "usuarioDB"
+
+        // Query Document -> Crea un Token con los datos de "token"
+
+        // Si existe un error la respueta del Query
+
+        // Enviar correo de recuperación con el token
+
+
+        // ##################################################################################################
+
+
+        // Generar una nueva contraseña
         var passwordActualizada = generarPassword();
 
+        // Asignar la contraseña encriptada (Autogeneración del salt[10] y del hash) al usuarioDB
         usuarioDB.password = bcrypt.hashSync(passwordActualizada, 10);
 
+        // Query Document -> Crea un Usuario con los datos de "usuarioDB"
         usuarioDB.save( (err, usuarioGuardado) => {
 
+            // Si existe un error
             if (err){
                 return res.status(400).json({
                     ok: false,
@@ -110,38 +84,35 @@ app.post('/recupera-password', (req, res) => {
                 });
             }
 
+            // Declarar variables para el envío de correo
+            var email = 'jvillanueva@dharma-consulting.com';
+            var context = {
+                nombres: usuarioDB.nombres,
+                passwordActualizada: passwordActualizada
+            }
 
-            main(passwordActualizada).then( 
-                data => {
-                    console.log('Envio de correo correcto');
-                    return  res.status(200).json({
-                                ok: true,
-                                mensaje: mensaje
-                            });
-                }
-              )
-              .catch( error => {
-                console.error('Error en la promesa', error);
-                return res.status(500).json({
-                    ok: false,
-                    mensaje: 'Error al ejecutar envio de correo',
-                    errors: err
-                });
-              } );
+            // Enviar correo de recuperación con la contraseña actualizada
+            sendMail(email, 'Recuperación de Contraseña', 'passwordRestore', context)
+                .then( data => {
+                        console.log('Envio de correo correcto');
+                        return  res.status(200).json({
+                                    ok: true,
+                                    mensaje: data
+                                });
+                    }
+                )
+                .catch( error => {
+                    console.error('Error en la promesa', error);
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: 'Error al ejecutar envio de correo',
+                        errors: err
+                    });
+                } );
 
         });
-        
-
-
-      
 
     });
-
-
-    
-
-  
-
 
 });
 

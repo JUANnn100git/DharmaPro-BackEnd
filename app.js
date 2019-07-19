@@ -1,11 +1,9 @@
 // Requires
 require('dotenv').config();
+require('./config/config');
 var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
-
-
-require('./config/config');
 
 // Inicializar variables
 var app = express();
