@@ -5,6 +5,7 @@ var crypto = require('crypto');
 var jwt = require('jsonwebtoken');
 
 var SEED = require('../config/config').SEED;
+var SERVER_URL = require('../config/config').SERVER_URL;
 
 var sendMail =  require('../helpers/mail');
 
@@ -55,58 +56,77 @@ app.post('/token-restaurar-passsword', (req, res) => {
             });
         }
 
-
-        // Crear Token de "passwordRestore" utilizando los datos de "usuarioDB"
-        var token = new Token({ _usuarioId: usuarioDB._id, token: crypto.randomBytes(16).toString('hex'), tipo: 'passwordRestore' });
-
-        // Query Document -> Crea un Token con los datos de "token"
-        token.save( (err) => {
+        // Query Document -> Encuentra un Token con los parámetros establecidos y devuelvelo como "tokenDB"
+        Token.findOne( {_usuarioId: usuarioDB._id, tipo: 'passwordRestore'}, function (err, tokenDB) {
 
             // Si existe un error la respueta del Query
             if (err){
-                return res.status(400).json({
+                return res.status(500).json({
                     ok: false,
-                    mensaje: 'Error al actualizar token',
+                    mensaje: 'Error al buscar token',
                     errors: err
                 });
             }
 
-            // Declarar variables para el envío de correo
-            var email = usuarioDB.email;
-            var template = token.tipo;
-            var context = {
-                nombres: usuarioDB.nombres,
-                token: token
+            // Si Existe el Token de Restauración de Contraseña
+            if (tokenDB) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'Ya existe un Token de Restauración de Contraseña para el usuario: ' + usuarioDB.email,
+                    errors: err
+                });
             }
 
-            // Enviar correo de recuperación con el token
-            sendMail(email, 'Recuperación de Contraseña', template, context)
-                .then( data => {
+            // Si No Existe el Token de Restauración de Contraseña para el usuarioDB
+
+             // Crear Token de "passwordRestore" utilizando los datos de "usuarioDB"
+            var token = new Token({ _usuarioId: usuarioDB._id, token: crypto.randomBytes(16).toString('hex'), tipo: 'passwordRestore', codigo: Math.floor(100000 + Math.random() * 900000) });
+
+            // Query Document -> Crea un Token con los datos de "token"
+            token.save( (err) => {
+
+                // Si existe un error la respueta del Query
+                if (err){
+                    return res.status(400).json({
+                        ok: false,
+                        mensaje: 'Error al actualizar token',
+                        errors: err
+                    });
+                }
+
+                // Declarar variables para el envío de correo
+                var email = usuarioDB.email;
+                var template = token.tipo;
+                var url = SERVER_URL + '/#/login-token/passwordRestore/' + token.token;
+                var context = {
+                    nombres: usuarioDB.nombres,
+                    email: email,
+                    codigo: token.codigo,
+                    url: url
+                }
+
+                // Enviar correo de recuperación con el token
+                sendMail(email, 'Solicitud de Restauración de Contraseña', template, context)
+                    .then( data => {
                         console.log('Envio de correo correcto');
                         return  res.status(200).json({
                                     ok: true,
                                     mensaje: data
                                 });
-                    }
-                )
-                .catch( error => {
-                    console.error('Error en la promesa', error);
-                    return res.status(500).json({
-                        ok: false,
-                        mensaje: 'Error al ejecutar envio de correo',
-                        errors: err
-                    });
-                } );
+                        }
+                    )
+                    .catch( error => {
+                        console.error('Error en la promesa', error);
+                        return res.status(500).json({
+                            ok: false,
+                            mensaje: 'Error al ejecutar envio de correo',
+                            errors: err
+                        });
+                    } );
+
+            });
 
         });
-
-        
-
-        
-
-
-        // ##################################################################################################
-
 
     });
 
@@ -115,93 +135,113 @@ app.post('/token-restaurar-passsword', (req, res) => {
 // =========================================
 // Confirmar Restauración de Contraseña
 // =========================================
+app.post('/confirmar-restaurar-password', (req, res) => {
 
+    // Obtiene los datos enviados por el POST request
+    var body = req.body;
 
-// ARREGLAR ESTA PARTE
-app.post('/restaura-password/:token', (req, res) => {
+    // Query Document -> Encuentra un Token con los parámetros establecidos y devuelvelo como "tokenDB"
+    Token.findOne( {token: body.token, tipo: body.tipo, codigo: body.codigo}, function (err, tokenDB) {
 
-    var token = req.params.token;
-
-    // Con el token busca al usuario y actualiza la contraseña y manda correo
-    // En el Front crear una pagina hago un render de wait circular y luego redirecciono al login
-
-    // Find a matching token
-    Token.findOne( {token: token}, function (err, token) {
-
-        if (!token) return res.status(400).send({ 
-            type: 'not-verified', 
-            msg: 'We were unable to find a valid token. Your token my have expired.',
-            token: token
-        });
-
-        // If we found a token, find a matching user
-        User.findOne({ _id: token._userId, email: email }, function (err, user) {
-            if (!user) return res.status(400).send({
-                    msg: 'We were unable to find a user for this token.' }
-                    
-                    );
-            if (user.isVerified) return res.status(400).send({ type: 'already-verified', msg: 'This user has already been verified.' });
-
-            // Verify and save the user
-            user.isVerified = true;
-            user.save(function (err) {
-                if (err) { return res.status(500).send({ msg: err.message }); }
-                res.status(200).send("The account has been verified. Please log in.");
-            });
-        });
-    });
-
-    if (!token) return res.status(400).send({ 
-        type: 'not-verified', 
-        msg: 'We were unable to find a valid token. Your token my have expired.',
-        token: token
-    });
-
-    // Generar una nueva contraseña
-    var passwordActualizada = generarPassword();
-
-    // Asignar la contraseña encriptada (Autogeneración del salt[10] y del hash) al usuarioDB
-    usuarioDB.password = bcrypt.hashSync(passwordActualizada, 10);
-
-    // Query Document -> Crea un Usuario con los datos de "usuarioDB"
-    usuarioDB.save( (err, usuarioGuardado) => {
-
-        // Si existe un error
+        // Si existe un error la respueta del Query
         if (err){
-            return res.status(400).json({
+            return res.status(500).json({
                 ok: false,
-                mensaje: 'Error al actualizar usuario',
+                mensaje: 'Error al buscar token',
                 errors: err
             });
         }
 
-        // Declarar variables para el envío de correo
-        var email = 'jvillanueva@dharma-consulting.com';
-        var context = {
-            nombres: usuarioDB.nombres,
-            passwordActualizada: passwordActualizada
+        // Si no existe el token buscado
+        if (!tokenDB) {
+            return res.status(400).json({
+                ok: false,
+                mensaje: 'No existe el token: ' + body.token,
+                errors: err
+            });
         }
 
-        // Enviar correo de recuperación con la contraseña actualizada
-        sendMail(email, 'Recuperación de Contraseña', 'passwordRestore', context)
-            .then( data => {
-                    console.log('Envio de correo correcto');
-                    return  res.status(200).json({
-                                ok: true,
-                                mensaje: data
-                            });
-                }
-            )
-            .catch( error => {
-                console.error('Error en la promesa', error);
+        // Query Document -> Encuentra un Usuario con las condiciones descritas y devuelvelo como "usuarioDB"
+        Usuario.findOne( {_id: tokenDB._usuarioId, email: body.email}, (err, usuarioDB) => {
+
+            // Si existe un error la respueta del Query
+            if (err){
                 return res.status(500).json({
                     ok: false,
-                    mensaje: 'Error al ejecutar envio de correo',
+                    mensaje: 'Error al buscar usuario',
                     errors: err
                 });
-            } );
+            }
+
+            // Si no existe el usuario buscado
+            if (!usuarioDB) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'No existe un usuario con el correo: ' + body.email,
+                    errors: err
+                });
+            }
+
+            // Si el usuario se encuentra inactivo
+            if ( usuarioDB.estado === 'Inactivo' ){
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'Este Usuario se encuentra <b>Inactivo</b> no se puede recuperar la contraseña',
+                    errors: err
+                });
+            }
+
+            // Generar una nueva contraseña
+            var passwordActualizada = generarPassword();
+
+            // Asignar la contraseña encriptada (Autogeneración del salt[10] y del hash) al usuarioDB
+            usuarioDB.password = bcrypt.hashSync(passwordActualizada, 10);
+
+            // Query Document -> Crea un Usuario con los datos de "usuarioDB"
+            usuarioDB.save( (err, usuarioGuardado) => {
+
+                // Si existe un error
+                if (err){
+                    return res.status(400).json({
+                        ok: false,
+                        mensaje: 'Error al actualizar usuario',
+                        errors: err
+                    });
+                }
+
+                // Declarar variables para el envío de correo
+                var email = usuarioDB.email;
+                var template = 'passwordRestoreConfirmation';
+                var context = {
+                    nombres: usuarioDB.nombres,
+                    passwordActualizada: passwordActualizada
+                }
+
+                // Enviar correo de restauración de contraseña
+                sendMail(email, 'Confirmación de Restauración de Contraseña', template, context)
+                    .then( data => {
+                        console.log('Envio de correo correcto');
+                        return  res.status(200).json({
+                                    ok: true,
+                                    mensaje: data
+                                });
+                        }
+                    )
+                    .catch( error => {
+                        console.error('Error en la promesa', error);
+                        return res.status(500).json({
+                            ok: false,
+                            mensaje: 'Error al ejecutar envio de correo',
+                            errors: err
+                        });
+                    } );
+
+            });
+
+        });
 
     });
+
 });
 
 // =========================================

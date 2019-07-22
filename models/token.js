@@ -14,6 +14,7 @@ const tokenSchema = new Schema({
     _usuarioId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Usuario' },
     token: { type: String, required: true },
     tipo: { type: String, required: true, enum: tiposValidos },
+    codigo: { type: String, required: true },
     fechaCreacion: { type: Date, required: true, default: Date.now, expires: 120 }
 });
 

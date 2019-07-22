@@ -57,5 +57,8 @@ app.use('/', appRoutes);
 // Escuchar peticiones
 app.listen(process.env.PORT, () => {
     console.log('\x1b[32m\x1b[36m' + 'Express server en puerto \x1b[32m\x1b[91m'+ process.env.PORT + '\x1b[32m\x1b[36m:\x1b[32m\x1b[93m', 'Online');
+    var os = require('os');
+
+console.log(os.hostname());
 });
 

@@ -2,10 +2,10 @@
   "name": "backend-server",
   "version": "1.0.0",
   "description": "Servidor backend del curso de Angular Avanzado",
-  "main": "app.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node app.js",
-    "nodemon": "nodemon app.js",
+    "start": "node server.js",
+    "nodemon": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Juan Villanueva",

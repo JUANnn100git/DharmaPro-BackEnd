@@ -4,6 +4,9 @@
 // Bcryptjs
 module.exports.SEED = "@super-%seed@-[2019]@";
 
+// Server URI
+module.exports.SERVER_URL = "http://localhost:4200";
+
 // =========================================
 // Puerto
 // =========================================
