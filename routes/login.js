@@ -7,14 +7,14 @@ var jwt = require('jsonwebtoken');
 var SEED = require('../config/config').SEED;
 var SERVER_URL = require('../config/config').SERVER_URL;
 
-var sendMail =  require('../helpers/mail');
+var sendMail = require('../helpers/mail');
 
 // Inicializar variables
 var app = express();
 
 // Importar modelos
-var Usuario =  require('../models/usuario');
-var Token =  require('../models/token');
+var Usuario = require('../models/usuario');
+var Token = require('../models/token');
 
 var mdAutenticacion = require('../middlewares/autenticacion');
 
@@ -30,7 +30,7 @@ app.post('/token-restaurar-passsword', (req, res) => {
     Usuario.findOne({ email: body.email }, (err, usuarioDB) => {
 
         // Si existe un error la respueta del Query
-        if (err){
+        if (err) {
             return res.status(500).json({
                 ok: false,
                 mensaje: 'Error al buscar usuario',
@@ -48,7 +48,7 @@ app.post('/token-restaurar-passsword', (req, res) => {
         }
 
         // Si el usuario se encuentra inactivo
-        if ( usuarioDB.estado === 'Inactivo' ){
+        if (usuarioDB.estado === 'Inactivo') {
             return res.status(400).json({
                 ok: false,
                 mensaje: 'Este Usuario se encuentra <b>Inactivo</b> no se puede recuperar la contraseña',
@@ -57,10 +57,10 @@ app.post('/token-restaurar-passsword', (req, res) => {
         }
 
         // Query Document -> Encuentra un Token con los parámetros establecidos y devuelvelo como "tokenDB"
-        Token.findOne( {_usuarioId: usuarioDB._id, tipo: 'passwordRestore'}, function (err, tokenDB) {
+        Token.findOne({ _usuarioId: usuarioDB._id, tipo: 'passwordRestore' }, function(err, tokenDB) {
 
             // Si existe un error la respueta del Query
-            if (err){
+            if (err) {
                 return res.status(500).json({
                     ok: false,
                     mensaje: 'Error al buscar token',
@@ -79,14 +79,14 @@ app.post('/token-restaurar-passsword', (req, res) => {
 
             // Si No Existe el Token de Restauración de Contraseña para el usuarioDB
 
-             // Crear Token de "passwordRestore" utilizando los datos de "usuarioDB"
+            // Crear Token de "passwordRestore" utilizando los datos de "usuarioDB"
             var token = new Token({ _usuarioId: usuarioDB._id, token: crypto.randomBytes(16).toString('hex'), tipo: 'passwordRestore', codigo: Math.floor(100000 + Math.random() * 900000) });
 
             // Query Document -> Crea un Token con los datos de "token"
-            token.save( (err) => {
+            token.save((err) => {
 
-                // Si existe un error la respueta del Query
-                if (err){
+                // Si existe un error la respuesta del Query
+                if (err) {
                     return res.status(400).json({
                         ok: false,
                         mensaje: 'Error al actualizar token',
@@ -103,26 +103,25 @@ app.post('/token-restaurar-passsword', (req, res) => {
                     email: email,
                     codigo: token.codigo,
                     url: url
-                }
+                };
 
                 // Enviar correo de recuperación con el token
                 sendMail(email, 'Solicitud de Restauración de Contraseña', template, context)
-                    .then( data => {
+                    .then(data => {
                         console.log('Envio de correo correcto');
-                        return  res.status(200).json({
-                                    ok: true,
-                                    mensaje: data
-                                });
-                        }
-                    )
-                    .catch( error => {
+                        return res.status(200).json({
+                            ok: true,
+                            mensaje: data
+                        });
+                    })
+                    .catch(error => {
                         console.error('Error en la promesa', error);
                         return res.status(500).json({
                             ok: false,
                             mensaje: 'Error al ejecutar envio de correo',
                             errors: err
                         });
-                    } );
+                    });
 
             });
 
@@ -141,10 +140,10 @@ app.post('/confirmar-restaurar-password', (req, res) => {
     var body = req.body;
 
     // Query Document -> Encuentra un Token con los parámetros establecidos y devuelvelo como "tokenDB"
-    Token.findOne( {token: body.token, tipo: body.tipo, codigo: body.codigo}, function (err, tokenDB) {
+    Token.findOne({ token: body.token, tipo: body.tipo, codigo: body.codigo }, function(err, tokenDB) {
 
-        // Si existe un error la respueta del Query
-        if (err){
+        // Si existe un error la respuesta del Query
+        if (err) {
             return res.status(500).json({
                 ok: false,
                 mensaje: 'Error al buscar token',
@@ -162,10 +161,10 @@ app.post('/confirmar-restaurar-password', (req, res) => {
         }
 
         // Query Document -> Encuentra un Usuario con las condiciones descritas y devuelvelo como "usuarioDB"
-        Usuario.findOne( {_id: tokenDB._usuarioId, email: body.email}, (err, usuarioDB) => {
+        Usuario.findOne({ _id: tokenDB._usuarioId, email: body.email }, (err, usuarioDB) => {
 
             // Si existe un error la respueta del Query
-            if (err){
+            if (err) {
                 return res.status(500).json({
                     ok: false,
                     mensaje: 'Error al buscar usuario',
@@ -183,7 +182,7 @@ app.post('/confirmar-restaurar-password', (req, res) => {
             }
 
             // Si el usuario se encuentra inactivo
-            if ( usuarioDB.estado === 'Inactivo' ){
+            if (usuarioDB.estado === 'Inactivo') {
                 return res.status(400).json({
                     ok: false,
                     mensaje: 'Este Usuario se encuentra <b>Inactivo</b> no se puede recuperar la contraseña',
@@ -198,10 +197,10 @@ app.post('/confirmar-restaurar-password', (req, res) => {
             usuarioDB.password = bcrypt.hashSync(passwordActualizada, 10);
 
             // Query Document -> Crea un Usuario con los datos de "usuarioDB"
-            usuarioDB.save( (err, usuarioGuardado) => {
+            usuarioDB.save((err, usuarioGuardado) => {
 
                 // Si existe un error
-                if (err){
+                if (err) {
                     return res.status(400).json({
                         ok: false,
                         mensaje: 'Error al actualizar usuario',
@@ -215,26 +214,25 @@ app.post('/confirmar-restaurar-password', (req, res) => {
                 var context = {
                     nombres: usuarioDB.nombres,
                     passwordActualizada: passwordActualizada
-                }
+                };
 
                 // Enviar correo de restauración de contraseña
                 sendMail(email, 'Confirmación de Restauración de Contraseña', template, context)
-                    .then( data => {
+                    .then(data => {
                         console.log('Envio de correo correcto');
-                        return  res.status(200).json({
-                                    ok: true,
-                                    mensaje: data
-                                });
-                        }
-                    )
-                    .catch( error => {
+                        return res.status(200).json({
+                            ok: true,
+                            mensaje: data
+                        });
+                    })
+                    .catch(error => {
                         console.error('Error en la promesa', error);
                         return res.status(500).json({
                             ok: false,
                             mensaje: 'Error al ejecutar envio de correo',
                             errors: err
                         });
-                    } );
+                    });
 
             });
 
@@ -266,7 +264,7 @@ app.post('/', (req, res) => {
     // { $and: [ { email: body.email }, { estado: { $ne: 'Inactivo' }} ] }
     Usuario.findOne({ email: body.email }, (err, usuarioDB) => {
 
-        if (err){
+        if (err) {
             return res.status(500).json({
                 ok: false,
                 mensaje: 'Error al buscar usuario',
@@ -282,7 +280,15 @@ app.post('/', (req, res) => {
             });
         }
 
-        if ( usuarioDB.estado === 'Inactivo' ){
+        if (!usuarioDB.estaVerificado) {
+            return res.status(400).json({
+                ok: false,
+                mensaje: 'Esta cuenta no se encuentra Verificada',
+                errors: err
+            });
+        }
+
+        if (usuarioDB.estado === 'Inactivo') {
             return res.status(400).json({
                 ok: false,
                 mensaje: 'Este Usuario se encuentra <b>Inactivo</b>',
@@ -290,7 +296,7 @@ app.post('/', (req, res) => {
             });
         }
 
-        if ( usuarioDB.estado === 'Bloqueado' ){
+        if (usuarioDB.estado === 'Bloqueado') {
             return res.status(400).json({
                 ok: false,
                 mensaje: 'Usuario Bloqueado.<br> Póngase en contacto con el administrador del Sistema',
@@ -298,24 +304,24 @@ app.post('/', (req, res) => {
             });
         }
 
-        if ( !bcrypt.compareSync(body.password, usuarioDB.password) ){
+        if (!bcrypt.compareSync(body.password, usuarioDB.password)) {
 
             usuarioDB.contador_login++;
-            
+
             if (usuarioDB.contador_login == 6) {
                 usuarioDB.estado = 'Bloqueado';
             }
 
-            usuarioDB.save( (err, usuarioGuardado) => {
+            usuarioDB.save((err, usuarioGuardado) => {
 
-                if (err){
+                if (err) {
                     return res.status(400).json({
                         ok: false,
                         mensaje: 'Error al actualizar usuario',
                         errors: err
                     });
                 }
-    
+
             });
 
             return res.status(400).json({
@@ -343,41 +349,37 @@ app.post('/', (req, res) => {
 
 
 
-function obtenerMenu( role ) {
+function obtenerMenu(role) {
 
     menu = [];
-    
+
     // pop(): Remove an item from the end of an array.
     // push(): Add items to the end of an array.
     // shift(): Remove an item from the beginning of an array.
     // unshift(): Add items to the beginning of an array.
 
-    if ( role === 'ADMIN_ROLE' ) {
-        menu.push(
-            {
-                titulo: 'Principal', // menu[0]
-                icono: 'mdi mdi-gauge',
-                submenu: [
-                    { titulo: 'Dashboard', url: '/dashboard' },
-                    { titulo: 'ProgressBar', url: '/progress' },
-                    { titulo: 'Gráficas', url: '/graficas1' },
-                    { titulo: 'Promesas', url: '/promesas' },
-                    { titulo: 'RxJs', url: '/rxjs' }
-                ]
-            }
-        );
-        menu.push(
-            {
-                titulo: 'Mantenimientos', // menu[1]
-                icono: 'mdi mdi-folder-lock-open',
-                submenu: [
-                    
-                ]
-            }
-        );
-        menu[1].submenu.push( { titulo: 'Usuarios', url: '/usuarios' } );
-        menu[1].submenu.push( { titulo: 'Hospitales', url: '/hospitales' } );
-        menu[1].submenu.push( { titulo: 'Médicos', url: '/medicos' } );
+    if (role === 'ADMIN_ROLE') {
+        menu.push({
+            titulo: 'Principal', // menu[0]
+            icono: 'mdi mdi-gauge',
+            submenu: [
+                { titulo: 'Dashboard', url: '/dashboard' },
+                { titulo: 'ProgressBar', url: '/progress' },
+                { titulo: 'Gráficas', url: '/graficas1' },
+                { titulo: 'Promesas', url: '/promesas' },
+                { titulo: 'RxJs', url: '/rxjs' }
+            ]
+        });
+        menu.push({
+            titulo: 'Mantenimientos', // menu[1]
+            icono: 'mdi mdi-folder-lock-open',
+            submenu: [
+
+            ]
+        });
+        menu[1].submenu.push({ titulo: 'Usuarios', url: '/usuarios' });
+        menu[1].submenu.push({ titulo: 'Hospitales', url: '/hospitales' });
+        menu[1].submenu.push({ titulo: 'Médicos', url: '/medicos' });
     }
 
     return menu;

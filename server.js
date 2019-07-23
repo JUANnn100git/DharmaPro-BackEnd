@@ -5,6 +5,8 @@ var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 
+var createAdmin = require('./helpers/admin');
+
 // Inicializar variables
 var app = express();
 
@@ -14,7 +16,7 @@ app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
     res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
     next();
-  });
+});
 
 // Body Parser: parse application/x-www-form-urlencoded & application/json
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -31,8 +33,8 @@ var uploadRoutes = require('./routes/upload');
 var imagenesRoutes = require('./routes/imagenes');
 
 // Conexión a la base de datos
-mongoose.connect(process.env.URLDB, { useNewUrlParser: true, useCreateIndex: true,  useFindAndModify: false }, (err, res) => {
-    if( err ) throw err;
+mongoose.connect(process.env.URLDB, { useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false }, (err, res) => {
+    if (err) throw err;
     console.log('\x1b[32m\x1b[36m' + 'Base de datos:\x1b[32m\x1b[93m', 'Online');
 });
 
@@ -56,9 +58,8 @@ app.use('/', appRoutes);
 
 // Escuchar peticiones
 app.listen(process.env.PORT, () => {
-    console.log('\x1b[32m\x1b[36m' + 'Express server en puerto \x1b[32m\x1b[91m'+ process.env.PORT + '\x1b[32m\x1b[36m:\x1b[32m\x1b[93m', 'Online');
-    var os = require('os');
-
-console.log(os.hostname());
+    console.log('\x1b[32m\x1b[36m' + 'Express server en puerto \x1b[32m\x1b[91m' + process.env.PORT + '\x1b[32m\x1b[36m:\x1b[32m\x1b[93m', 'Online');
 });
 
+// Crear la Credenciales del Administrador en caso no exista en la BD
+createAdmin();

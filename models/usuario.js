@@ -35,10 +35,12 @@ var usuarioSchema = new Schema({
     img: { type: String, required: false },
     role: { type: String, required: true, default: 'USER_ROLE', enum: rolesValidos },
     estado: { type: String, required: false, default: 'Activo', enum: estadosValidos },
-    contador_login: { type: Number, required: false, default: 0 }
+    contadorLogin: { type: Number, required: false, default: 0 },
+    esAdmin: { type: Boolean, default: false },
+    estaVerificado: { type: Boolean, default: false }
 
 });
 
-usuarioSchema.plugin( uniqueValidator, { message: '{PATH} debe ser único' } );
+usuarioSchema.plugin(uniqueValidator, { message: '{PATH} debe ser único' });
 
 module.exports = mongoose.model('Usuario', usuarioSchema);
