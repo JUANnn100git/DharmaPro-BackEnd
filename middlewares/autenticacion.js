@@ -33,7 +33,7 @@ exports.verificaToken = function(req, res, next) {
 
     });
 
-}
+};
 
 
 // =========================================
@@ -52,10 +52,10 @@ exports.verificaAdminRole = function(req, res, next) {
             ok: false,
             mensaje: 'Token incorrecto - No es administrador',
             errors: { message: 'No es administrador, no puede hacer eso' }
-        });;
+        });
     }
 
-}
+};
 
 
 // =========================================
@@ -76,7 +76,7 @@ exports.verificaAdminRole_o_MismoUsuario = function(req, res, next) {
             ok: false,
             mensaje: 'Token incorrecto - No es administrador ni es el mismo usuario',
             errors: { message: 'No es administrador, no puede hacer eso' }
-        });;
+        });
     }
 
-}
+};
