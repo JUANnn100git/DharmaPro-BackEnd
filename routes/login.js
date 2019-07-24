@@ -2,6 +2,8 @@
 var express = require('express');
 var bcrypt = require('bcryptjs');
 var crypto = require('crypto');
+var cryptoRandomString = require('crypto-random-string');
+
 var jwt = require('jsonwebtoken');
 
 var SEED = require('../config/config').SEED;
@@ -80,7 +82,7 @@ app.post('/token-restaurar-passsword', (req, res) => {
             // Si No Existe el Token de Restauración de Contraseña para el usuarioDB
 
             // Crear Token de "passwordRestore" utilizando los datos de "usuarioDB"
-            var token = new Token({ _usuarioId: usuarioDB._id, token: crypto.randomBytes(16).toString('hex'), tipo: 'passwordRestore', codigo: Math.floor(100000 + Math.random() * 900000) });
+            var token = new Token({ _usuarioId: usuarioDB._id, token: cryptoRandomString({ length: 32 }), tipo: 'passwordRestore', codigo: Math.floor(100000 + Math.random() * 900000) });
 
             // Query Document -> Crea un Token con los datos de "token"
             token.save((err) => {
