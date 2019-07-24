@@ -23,12 +23,12 @@ var Token = require('../models/token');
 // =========================================
 // GET: Obtener todos los usuarios
 // =========================================
-app.get('/', mdAutenticacion.verificaToken, (req, res) => {
+app.get('/', [mdAutenticacion.verificaToken, mdAutenticacion.verificarPermiso('Dharma_Consultoria')], (req, res) => {
 
     var desde = req.query.desde || 0;
     desde = Number(desde);
 
-    Usuario.find({}, 'nombres email img role estado contadorLogin estaVerificado')
+    Usuario.find({}, 'nombres email img role estado contadorLogin estaVerificado esAdmin')
         .skip(desde)
         .limit(5)
         .exec(

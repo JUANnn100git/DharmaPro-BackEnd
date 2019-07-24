@@ -29,6 +29,8 @@ exports.verificaToken = function(req, res, next) {
 
         req.usuario = decoded.usuario;
 
+        //console.log('req.usuario: ', req.usuario);
+
         next();
 
     });
@@ -43,6 +45,7 @@ exports.verificaToken = function(req, res, next) {
 exports.verificaAdminRole = function(req, res, next) {
 
     var usuario = req.usuario;
+    //console.log('usuario: ', usuario);
 
     if (usuario.role === 'ADMIN_ROLE') {
         next();
@@ -79,4 +82,28 @@ exports.verificaAdminRole_o_MismoUsuario = function(req, res, next) {
         });
     }
 
+};
+
+// =========================================
+// Verificar Permisos 
+// =========================================
+
+exports.verificarPermiso = function(permiso) {
+    return function(req, res, next) {
+
+        var usuario = req.usuario;
+
+        console.log('usuario.role', usuario.role);
+
+        if (usuario.role.nombre === permiso || usuario.role.nombre === 'ADMIN_ROLE') {
+            next();
+            return;
+        } else {
+            return res.status(401).json({
+                ok: false,
+                mensaje: 'No tiene permisos para realizar esta acción',
+                errors: { message: 'No puede hacer eso' }
+            });
+        }
+    };
 };

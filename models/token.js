@@ -8,7 +8,7 @@ var tiposValidos = {
         'passwordRestore'
     ],
     message: '{VALUE} no es un tipo permitido'
-}
+};
 
 const tokenSchema = new Schema({
     _usuarioId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Usuario' },

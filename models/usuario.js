@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-var uniqueValidator = require('mongoose-unique-validator')
+var uniqueValidator = require('mongoose-unique-validator');
 
 var Schema = mongoose.Schema;
 
@@ -25,7 +25,7 @@ var estadosValidos = {
         'Bloqueado'
     ],
     message: '{VALUE} no es un estado permitido'
-}
+};
 
 var usuarioSchema = new Schema({
 
@@ -33,7 +33,7 @@ var usuarioSchema = new Schema({
     email: { type: String, unique: true, required: [true, 'El correo es necesario'] },
     password: { type: String, required: [true, 'La contraseña es necesaria'] },
     img: { type: String, required: false },
-    role: { type: String, required: true, default: 'USER_ROLE', enum: rolesValidos },
+    role: { type: Schema.Types.ObjectId, ref: 'Rol', required: true },
     estado: { type: String, required: false, default: 'Activo', enum: estadosValidos },
     contadorLogin: { type: Number, required: false, default: 0 },
     esAdmin: { type: Boolean, default: false },

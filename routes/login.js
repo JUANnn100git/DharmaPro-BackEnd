@@ -264,88 +264,90 @@ app.post('/', (req, res) => {
 
     var body = req.body;
     // { $and: [ { email: body.email }, { estado: { $ne: 'Inactivo' }} ] }
-    Usuario.findOne({ email: body.email }, (err, usuarioDB) => {
+    Usuario.findOne({ email: body.email })
+        .populate('role')
+        .exec((err, usuarioDB) => {
 
-        if (err) {
-            return res.status(500).json({
-                ok: false,
-                mensaje: 'Error al buscar usuario',
-                errors: err
-            });
-        }
-
-        if (!usuarioDB) {
-            return res.status(400).json({
-                ok: false,
-                mensaje: 'Credenciales incorrectas - email',
-                errors: err
-            });
-        }
-
-        if (!usuarioDB.estaVerificado) {
-            return res.status(400).json({
-                ok: false,
-                mensaje: 'Esta cuenta no se encuentra Verificada',
-                errors: err
-            });
-        }
-
-        if (usuarioDB.estado === 'Inactivo') {
-            return res.status(400).json({
-                ok: false,
-                mensaje: 'Este Usuario se encuentra <b>Inactivo</b>',
-                errors: err
-            });
-        }
-
-        if (usuarioDB.estado === 'Bloqueado') {
-            return res.status(400).json({
-                ok: false,
-                mensaje: 'Usuario Bloqueado.<br> Póngase en contacto con el administrador del Sistema',
-                errors: err
-            });
-        }
-
-        if (!bcrypt.compareSync(body.password, usuarioDB.password)) {
-
-            usuarioDB.contador_login++;
-
-            if (usuarioDB.contador_login == 6) {
-                usuarioDB.estado = 'Bloqueado';
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: 'Error al buscar usuario',
+                    errors: err
+                });
             }
 
-            usuarioDB.save((err, usuarioGuardado) => {
+            if (!usuarioDB) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'Credenciales incorrectas - email',
+                    errors: err
+                });
+            }
 
-                if (err) {
-                    return res.status(400).json({
-                        ok: false,
-                        mensaje: 'Error al actualizar usuario',
-                        errors: err
-                    });
+            if (!usuarioDB.estaVerificado) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'Esta cuenta no se encuentra Verificada',
+                    errors: err
+                });
+            }
+
+            if (usuarioDB.estado === 'Inactivo') {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'Este Usuario se encuentra <b>Inactivo</b>',
+                    errors: err
+                });
+            }
+
+            if (usuarioDB.estado === 'Bloqueado') {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'Usuario Bloqueado.<br> Póngase en contacto con el administrador del Sistema',
+                    errors: err
+                });
+            }
+
+            if (!bcrypt.compareSync(body.password, usuarioDB.password)) {
+
+                usuarioDB.contador_login++;
+
+                if (usuarioDB.contador_login == 6) {
+                    usuarioDB.estado = 'Bloqueado';
                 }
 
+                usuarioDB.save((err, usuarioGuardado) => {
+
+                    if (err) {
+                        return res.status(400).json({
+                            ok: false,
+                            mensaje: 'Error al actualizar usuario',
+                            errors: err
+                        });
+                    }
+
+                });
+
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'Credenciales incorrectas - password',
+                    errors: err
+                });
+            }
+
+            // Crear un token !!!
+            usuarioDB.password = ':)';
+            var token = jwt.sign({ usuario: usuarioDB }, SEED, { expiresIn: 14400 }); // 4 horas -> 14400
+
+            res.status(200).json({
+                ok: true,
+                usuario: usuarioDB,
+                token: token,
+                id: usuarioDB._id,
+                menu: obtenerMenu(usuarioDB.role)
             });
 
-            return res.status(400).json({
-                ok: false,
-                mensaje: 'Credenciales incorrectas - password',
-                errors: err
-            });
-        }
-
-        // Crear un token !!!
-        usuarioDB.password = ':)';
-        var token = jwt.sign({ usuario: usuarioDB }, SEED, { expiresIn: 14400 }); // 4 horas -> 14400
-
-        res.status(200).json({
-            ok: true,
-            usuario: usuarioDB,
-            token: token,
-            id: usuarioDB._id,
-            menu: obtenerMenu(usuarioDB.role)
         });
-
-    });
 
 });
 
@@ -379,10 +381,23 @@ function obtenerMenu(role) {
 
             ]
         });
+        menu[1].submenu.push({ titulo: 'Roles', url: '/roles' });
         menu[1].submenu.push({ titulo: 'Usuarios', url: '/usuarios' });
         menu[1].submenu.push({ titulo: 'Hospitales', url: '/hospitales' });
         menu[1].submenu.push({ titulo: 'Médicos', url: '/medicos' });
     }
+
+    if (role === 'Dharma_Consultoria') {
+        menu.push({
+            titulo: 'Consultoría', // menu[1]
+            icono: 'mdi mdi-folder-lock-open',
+            submenu: [
+
+            ]
+        });
+        menu[0].submenu.push({ titulo: 'Usuarios', url: '/usuarios' });
+    }
+
 
     return menu;
 }
