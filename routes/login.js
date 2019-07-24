@@ -353,7 +353,7 @@ app.post('/', (req, res) => {
 
 function obtenerMenu(role) {
 
-    menu = [];
+    const menu = [];
 
     // pop(): Remove an item from the end of an array.
     // push(): Add items to the end of an array.

@@ -24,7 +24,7 @@ exports.verificaToken = function(req, res, next) {
                 ok: false,
                 mensaje: 'Token incorrecto 123',
                 errors: err
-            });;
+            });
         }
 
         req.usuario = decoded.usuario;
