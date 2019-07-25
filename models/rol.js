@@ -7,7 +7,8 @@ var rolSchema = new Schema({
     nombre: { type: String, unique: true, require: [true, 'El nombre es requerido'] },
     permisos: [{ type: String }],
     guards: [{ type: String }],
-    esSistema: { type: Boolean, default: false }
+    esSistema: { type: Boolean, default: false },
+    menu: { type: Schema.Types.ObjectId, ref: 'Menu' },
 }, { collection: 'roles' });
 
 rolSchema.plugin(uniqueValidator, { message: 'El campo ({PATH}) debe ser único' });

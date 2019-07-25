@@ -45,9 +45,9 @@ exports.verificaToken = function(req, res, next) {
 exports.verificaAdminRole = function(req, res, next) {
 
     var usuario = req.usuario;
-    //console.log('usuario: ', usuario);
+    console.log('usuario: ', usuario);
 
-    if (usuario.role === 'ADMIN_ROLE') {
+    if (usuario.esAdmin) {
         next();
         return;
     } else {
@@ -71,7 +71,7 @@ exports.verificaAdminRole_o_MismoUsuario = function(req, res, next) {
 
     var id = req.params.id;
 
-    if (usuario.role === 'ADMIN_ROLE' || usuario._id === id) {
+    if (usuario.esAdmin || usuario._id === id) {
         next();
         return;
     } else {
@@ -95,7 +95,9 @@ exports.verificarPermiso = function(permiso) {
 
         console.log('usuario.role', usuario.role);
 
-        if (usuario.role.nombre === permiso || usuario.role.nombre === 'ADMIN_ROLE') {
+        var conPermiso = usuario.role.permisos.includes(permiso);
+
+        if (conPermiso || usuario.esAdmin) {
             next();
             return;
         } else {

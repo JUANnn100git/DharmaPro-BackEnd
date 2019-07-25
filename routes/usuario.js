@@ -23,36 +23,36 @@ var Token = require('../models/token');
 // =========================================
 // GET: Obtener todos los usuarios
 // =========================================
-app.get('/', [mdAutenticacion.verificaToken, mdAutenticacion.verificarPermiso('Dharma_Consultoria')], (req, res) => {
+app.get('/', [mdAutenticacion.verificaToken, mdAutenticacion.verificarPermiso('usuario_get')], (req, res) => {
 
     var desde = req.query.desde || 0;
     desde = Number(desde);
 
     Usuario.find({}, 'nombres email img role estado contadorLogin estaVerificado esAdmin')
+        .populate('role', 'nombre')
         .skip(desde)
         .limit(5)
-        .exec(
-            (err, usuarios) => {
+        .exec((err, usuarios) => {
 
-                if (err) {
-                    return res.status(500).json({
-                        ok: false,
-                        mensaje: 'Error cargando usuarios',
-                        errors: err
-                    });
-                }
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: 'Error cargando usuarios',
+                    errors: err
+                });
+            }
 
-                Usuario.countDocuments({}, (err, conteo) => {
+            Usuario.countDocuments({}, (err, conteo) => {
 
-                    res.status(200).json({
-                        ok: true,
-                        usuarios: usuarios,
-                        total: conteo
-                    });
-
+                res.status(200).json({
+                    ok: true,
+                    usuarios: usuarios,
+                    total: conteo
                 });
 
             });
+
+        });
 
 });
 
@@ -65,6 +65,7 @@ app.get('/:id', mdAutenticacion.verificaToken, (req, res) => {
     var id = req.params.id;
 
     Usuario.findById(id)
+        .populate('role', 'nombre')
         .exec((err, usuario) => {
 
             if (err) {
