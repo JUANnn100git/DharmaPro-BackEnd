@@ -58,7 +58,7 @@ app.get('/', [mdAutenticacion.verificaToken, mdAutenticacion.verificarPermiso('u
 
 
 // ==========================================
-// GET: Obtener Usuario por ID
+// GET: Obtener Usuario por ID OU
 // ==========================================
 app.get('/:id', mdAutenticacion.verificaToken, (req, res) => {
 
@@ -71,7 +71,7 @@ app.get('/:id', mdAutenticacion.verificaToken, (req, res) => {
             if (err) {
                 return res.status(500).json({
                     ok: false,
-                    mensaje: 'Error al buscar usuario',
+                    mensaje: 'Error al buscar usuario OU-001',
                     errors: err
                 });
             }
@@ -91,9 +91,9 @@ app.get('/:id', mdAutenticacion.verificaToken, (req, res) => {
                 usuario: usuario
             });
 
-        })
+        });
 
-})
+});
 
 // =========================================
 // PUT: Actualizar usuario
@@ -108,7 +108,7 @@ app.put('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminRol
         if (err) {
             return res.status(500).json({
                 ok: false,
-                mensaje: 'Error al buscar usuario',
+                mensaje: 'Error al buscar usuario AU-001',
                 errors: err
             });
         }
@@ -124,6 +124,7 @@ app.put('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminRol
         usuario.nombres = body.nombres;
         usuario.email = body.email;
         usuario.role = body.role;
+        usuario.propiedades = body.propiedades;
 
         usuario.save((err, usuarioGuardado) => {
 
@@ -161,7 +162,7 @@ app.put('/security/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verific
         if (err) {
             return res.status(500).json({
                 ok: false,
-                mensaje: 'Error al buscar usuario',
+                mensaje: 'Error al buscar usuario AP-001',
                 errors: err
             });
         }
@@ -215,7 +216,7 @@ app.post('/', mdAutenticacion.verificaToken, (req, res) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
-                mensaje: 'Error al buscar usuario',
+                mensaje: 'Error al buscar usuario CU-001',
                 errors: err
             });
         }
@@ -244,7 +245,7 @@ app.post('/', mdAutenticacion.verificaToken, (req, res) => {
             if (err) {
                 return res.status(500).json({
                     ok: false,
-                    mensaje: 'Error al buscar usuario',
+                    mensaje: 'Error al buscar usuario CU-002',
                     errors: err
                 });
             }
@@ -485,7 +486,7 @@ app.post('/confirmar-verificar-cuenta', (req, res) => {
             if (err) {
                 return res.status(500).json({
                     ok: false,
-                    mensaje: 'Error al buscar usuario',
+                    mensaje: 'Error al buscar usuario CC-001',
                     errors: err
                 });
             }
